@@ -1,0 +1,1186 @@
+<title>gym notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --ground:#FBF9F4;
+  --surface:#FFFFFF;
+  --line:#E8E2D6;
+  --hi:#1B1815;
+  --mid:#6E6860;
+  --ghost:#C4BCAF;
+  --accent:#B0711A;
+  --sel:#F1EBDE;
+  --danger:#B23A2B;
+  --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0B0A09;
+    --surface:#141210;
+    --line:#272320;
+    --hi:#F1EDE5;
+    --mid:#8A847B;
+    --ghost:#4B453D;
+    --accent:#E3A24A;
+    --sel:#1F1C18;
+    --danger:#E0705F;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0B0A09;
+  --surface:#141210;
+  --line:#272320;
+  --hi:#F1EDE5;
+  --mid:#8A847B;
+  --ghost:#4B453D;
+  --accent:#E3A24A;
+  --sel:#1F1C18;
+  --danger:#E0705F;
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--ground);
+  color:var(--hi);
+  font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;
+  font-size:16px;
+}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+input{font:inherit;color:inherit;background:none;border:0;padding:0;outline:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+
+.wrap{
+  max-width:468px;
+  margin:0 auto;
+  min-height:100vh;
+  background:var(--ground);
+  position:relative;
+  padding-bottom:110px;
+}
+@media (min-width:520px){
+  .wrap{border-left:1px solid var(--line);border-right:1px solid var(--line)}
+}
+
+/* swipe-to-delete shell */
+.swipe{position:relative;overflow:hidden}
+.swipe-del{
+  position:absolute;top:0;right:0;bottom:0;
+  display:flex;align-items:center;justify-content:flex-end;
+  padding-right:14px;
+  font-size:12.5px;font-weight:600;letter-spacing:.03em;
+  color:var(--danger);opacity:0;pointer-events:none;
+  transition:opacity .12s ease;
+}
+.swipe.pulling .swipe-del{opacity:.5}
+.swipe.armed .swipe-del{opacity:1}
+.swipe-face{background:var(--ground);position:relative}
+
+/* top bar */
+.bar{
+  position:sticky;top:0;z-index:20;
+  display:flex;align-items:center;gap:12px;
+  height:50px;padding:0 16px;
+  background:var(--ground);
+}
+.bar .grow{flex:1}
+.bar button{color:var(--accent);font-size:15px;font-weight:500;display:flex;align-items:center;gap:3px}
+.bar .chev{font-size:20px;line-height:1;margin-top:-2px}
+.bar .dots{font-size:18px;letter-spacing:.08em}
+
+/* list screen */
+.listhead{padding:4px 20px 14px}
+.listhead h1{font-size:32px;font-weight:700;letter-spacing:-.025em;margin:0;line-height:1.1}
+.listhead p{margin:9px 0 0;font-size:13px;color:var(--mid);line-height:1.55;max-width:36ch}
+.rows{display:flex;flex-direction:column;padding-left:20px}
+.row{
+  display:block;width:100%;text-align:left;
+  padding:13px 20px 13px 0;
+  border-bottom:1px solid var(--line);
+}
+.rows .swipe:last-child .row{border-bottom:0}
+.row .t{font-size:16px;font-weight:600;letter-spacing:-.01em}
+.row .m{margin-top:3px;font-size:13px;color:var(--mid);display:flex;gap:9px;align-items:baseline}
+.row .m .d{font-family:var(--mono);font-size:12px;flex:none}
+.row .m .p{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.blank-state{padding:26px 20px 0;max-width:34ch}
+.blank-state h2{margin:0 0 8px;font-size:17px;font-weight:600;letter-spacing:-.01em}
+.blank-state p{margin:0;font-size:14px;color:var(--mid);line-height:1.6}
+
+/* session screen */
+.stamp{
+  text-align:center;font-family:var(--mono);
+  font-size:11px;letter-spacing:.07em;color:var(--mid);
+  padding:2px 20px 18px;
+}
+.stamp .u{color:var(--ghost)}
+.title{
+  display:block;width:100%;padding:0 20px;
+  font-size:30px;font-weight:700;letter-spacing:-.025em;line-height:1.15;
+}
+.title::placeholder{color:var(--ghost)}
+
+.hint{
+  padding:9px 11px;
+  border-left:2px solid var(--accent);
+  background:var(--sel);border-radius:0 6px 6px 0;
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;
+  font-size:13px;color:var(--mid);line-height:1.45;
+}
+.hint.top{margin:9px 20px 0}
+.hint.inline{margin:1px 0 7px}
+.hint .msg{flex:1 1 100%}
+.hint .msg b{color:var(--hi);font-weight:600}
+.hint button{font-size:13px;font-weight:600;color:var(--accent);text-align:left}
+.hint button.plain{color:var(--mid);font-weight:400}
+
+.blocks{padding:22px 20px 0;display:flex;flex-direction:column;gap:19px}
+
+.ex{display:flex;flex-direction:column;gap:0}
+.exname{
+  display:flex;align-items:baseline;gap:9px;
+  font-size:16.5px;font-weight:500;letter-spacing:-.005em;
+  padding:1px 0 6px;text-align:left;
+}
+.exname .dash{color:var(--ghost);font-family:var(--mono);font-weight:400}
+
+.set{
+  display:grid;
+  grid-template-columns:2.8ch 1.4ch 3ch 2.1ch 5ch 1fr;
+  align-items:baseline;
+  font-family:var(--mono);font-size:15.5px;
+  padding:2px 0;
+  font-variant-numeric:tabular-nums;
+  touch-action:pan-y;
+}
+.set .idx{color:var(--ghost);font-size:13.5px}
+.set .tok{color:var(--mid)}
+.set .tok.at{text-align:right}
+.set.dim .tok.at{color:var(--ghost);opacity:.45}
+.set.blank .tok{opacity:.2}
+.set input{width:100%;font-family:var(--mono);font-size:15.5px;border-radius:3px}
+.set input::placeholder{color:var(--ghost);opacity:1}
+.set .r{text-align:right}
+.set .w{text-align:left}
+.set .n{font-size:14px;color:var(--mid);padding-left:1.4ch}
+.set input:focus{background:var(--sel)}
+
+.addwrap{padding-top:2px}
+.addex{
+  text-align:left;width:100%;
+  font-size:16.5px;color:var(--ghost);
+  display:flex;align-items:baseline;gap:9px;
+}
+.addex .dash{font-family:var(--mono)}
+.addex input{font-size:16.5px;font-weight:500;width:100%;color:var(--hi)}
+.addex input::placeholder{color:var(--ghost);font-weight:400}
+
+/* floating action */
+.fab{
+  position:fixed;left:50%;transform:translateX(-50%);
+  bottom:24px;z-index:30;
+  padding:11px 19px;border-radius:999px;
+  background:var(--hi);color:var(--ground);
+  font-size:14px;font-weight:600;letter-spacing:-.01em;
+  box-shadow:0 6px 22px rgba(0,0,0,.22);
+}
+
+/* sheet */
+.scrim{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
+.sheet{
+  width:100%;max-width:468px;max-height:84vh;overflow-y:auto;
+  background:var(--surface);
+  border-top:1px solid var(--line);
+  border-radius:16px 16px 0 0;
+  padding:22px 20px 30px;
+  animation:up .22s cubic-bezier(.2,.8,.3,1);
+}
+@keyframes up{from{transform:translateY(16px);opacity:.3}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.sheet{animation:none}}
+.sheet h2{margin:0 0 3px;font-size:20px;font-weight:600;letter-spacing:-.015em}
+.sheet .sub{margin:0 0 18px;font-size:13px;color:var(--mid);line-height:1.5}
+.opt{
+  display:flex;align-items:baseline;width:100%;text-align:left;
+  padding:13px 0;border-bottom:1px solid var(--line);
+  font-size:16px;
+}
+.opt .k{font-size:12px;color:var(--mid);font-family:var(--mono);margin-left:9px}
+.opt.danger{color:var(--danger)}
+
+.hist{display:flex;flex-direction:column;gap:15px;margin-top:2px}
+.hentry .hd{font-family:var(--mono);font-size:11px;letter-spacing:.07em;color:var(--mid);margin-bottom:4px}
+.hentry .hd .alias{color:var(--ghost)}
+.hentry .hl{font-family:var(--mono);font-size:15px;font-variant-numeric:tabular-nums;line-height:1.5}
+.hentry .hl .muted{color:var(--ghost)}
+.empty{font-size:14px;color:var(--mid);padding:5px 0 2px;line-height:1.55}
+
+pre.md{
+  font-family:var(--mono);font-size:12px;line-height:1.6;
+  background:var(--ground);border:1px solid var(--line);border-radius:8px;
+  padding:12px;max-height:42vh;overflow:auto;white-space:pre;
+  color:var(--hi);margin:0 0 14px;
+}
+.btnrow{display:flex;gap:10px}
+.btn{
+  flex:1;padding:12px;border-radius:9px;text-align:center;
+  font-size:15px;font-weight:600;background:var(--sel);color:var(--hi);
+}
+.btn.primary{background:var(--accent);color:#100E0B}
+</style>
+
+<div class="wrap" id="wrap"></div>
+<div id="sheetHost"></div>
+<datalist id="exnames"></datalist>
+
+<script>
+(function(){
+"use strict";
+
+/* =======================================================================
+   1. STRINGS — every user-facing word lives here, nowhere else.
+   ======================================================================= */
+
+var STR = {
+  en: {
+    langName: "English",
+    appName: "gym notes",
+    notes: "notes", untitled: "untitled", titlePh: "title",
+    tagline: "Every workout is a note. Last time's numbers sit faded — type over them.",
+    blankTitle: "No notes yet.",
+    blankBody: "Start the first workout below. Write the exercises, fill the sets. Next time the same numbers will be waiting, faded.",
+    noEx: "no exercises",
+    addEx: "add exercise", exNamePh: "exercise name",
+    newWorkout: "new workout",
+    newSub: "Pick a day: the exercises come back, the numbers come back empty, last time stays faded.",
+    blankNote: "blank note",
+    swipeDel: "delete",
+    exportMd: "export as markdown", units: "units", deleteNote: "delete this note",
+    history: "history", thisNote: "this note", emptySoFar: "empty so far",
+    firstTime: "First time for this exercise. Next workout, today's numbers will be waiting faded.",
+    removeEx: "remove from this note",
+    exportTitle: "export",
+    exportSub: "The whole notebook as plain text. Your data stays in this browser.",
+    copy: "copy", copied: "copied", selected: "selected — copy it", close: "close",
+    notebook: "notebook", nNotes: "notes", nEx: "exercises",
+    loadSample: "load sample notebook", eraseAll: "erase everything",
+    language: "language",
+    taken: "is already a workout in this notebook.", renameTo: "rename to", keepIt: "keep the name",
+    sameAs: "Same exercise as", sameQ: "?",
+    merge: "yes, share the history", keepApart: "no, keep separate",
+    alsoKnown: "also",
+    mdEmpty: "(empty)",
+    aReps: "reps", aWeight: "weight", aNote: "note", aSet: "set",
+    aSettings: "notebook settings", aNoteOpts: "note options", aTitle: "note title",
+    mon: ["January","February","March","April","May","June","July","August","September","October","November","December"],
+    day: ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]
+  },
+  tr: {
+    langName: "Türkçe",
+    appName: "gym notes",
+    notes: "notlar", untitled: "başlıksız", titlePh: "başlık",
+    tagline: "Her antrenman bir not. Geçen seferki sayılar soluk durur — üzerine yaz.",
+    blankTitle: "Henüz not yok.",
+    blankBody: "Aşağıdan ilk antrenmanı aç. Hareketleri yaz, setleri gir. Bir dahaki sefere aynı sayılar soluk olarak karşına gelecek.",
+    noEx: "hareket yok",
+    addEx: "hareket ekle", exNamePh: "hareket adı",
+    newWorkout: "yeni antrenman",
+    newSub: "Bir gün seç: hareketler gelir, sayılar boş gelir, geçen sefer soluk durur.",
+    blankNote: "boş not",
+    swipeDel: "sil",
+    exportMd: "markdown olarak dışa aktar", units: "birim", deleteNote: "bu notu sil",
+    history: "geçmiş", thisNote: "bu not", emptySoFar: "henüz boş",
+    firstTime: "Bu hareket ilk kez burada. Bir sonraki antrenmanda bugünkü sayılar soluk olarak karşına çıkacak.",
+    removeEx: "bu hareketi nottan çıkar",
+    exportTitle: "dışa aktar",
+    exportSub: "Tüm defter düz metin. Veri tarayıcında duruyor, hiçbir yere gitmiyor.",
+    copy: "kopyala", copied: "kopyalandı", selected: "seçildi — kopyala", close: "kapat",
+    notebook: "defter", nNotes: "not", nEx: "hareket",
+    loadSample: "örnek defteri yükle", eraseAll: "her şeyi sil",
+    language: "dil",
+    taken: "bu defterde zaten bir antrenman.", renameTo: "şu ada geç:", keepIt: "adı böyle kalsın",
+    sameAs: "Şununla aynı hareket mi:", sameQ: "",
+    merge: "evet, geçmişi paylaşsınlar", keepApart: "hayır, ayrı kalsın",
+    alsoKnown: "ayrıca",
+    mdEmpty: "(boş)",
+    aReps: "tekrar", aWeight: "ağırlık", aNote: "not", aSet: "set",
+    aSettings: "defter ayarları", aNoteOpts: "not seçenekleri", aTitle: "not başlığı",
+    mon: ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"],
+    day: ["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"]
+  }
+};
+var LANGS = ["en", "tr"];
+function t(k){ return (STR[db.lang] || STR.en)[k]; }
+
+/* =======================================================================
+   2. DATA — one shape, one place.
+
+   db = {
+     v, lang, units,
+     aliases: { "<canon key>": "<canon key>" },   name A means name B
+     rejects: { "<key>|<key>": 1 },               already asked, answer was no
+     sessions: [{
+       id, date:"YYYY-MM-DD", title, fresh?,
+       blocks: [{ id, name, ask?, sets: [{ r, w, n }] }]
+     }]
+   }
+
+   r = reps (number|null), w = weight (number|null), n = free note (string).
+   null means "not recorded" — different from 0, and never invented.
+   ======================================================================= */
+
+function s(r, w, n){ return { r: (r == null ? null : r), w: (w == null ? null : w), n: n || "" }; }
+
+function fresh(){
+  return { v: 3, lang: "en", units: "kg", aliases: {}, rejects: {}, sessions: [] };
+}
+
+function sample(){
+  function mk(id, date, title, blocks){
+    return { id: id, date: date, title: title, blocks: blocks.map(function(b, i){
+      return { id: id + "b" + i, name: b[0], sets: b[1] };
+    }) };
+  }
+  var d = fresh();
+  d.sessions = [
+    mk("s1", "2026-09-01", "push A", [
+      ["pec deck", [s(11, 62.5), s(8, 70)]],
+      ["incline smith", [s(10, 50), s(8, 60)]],
+      ["dumbbell lateral", [s(12, 12), s(12, 12), s(12, 12), s(12, 12)]],
+      ["shoulder press", [s(), s(), s()]],
+      ["triceps extension", [s(), s(), s()]]
+    ]),
+    mk("s2", "2026-09-05", "pull day", [
+      ["lat pulldown", [s(9, 9), s(9, 9), s(8, 9)]],
+      ["row", [s(10, 40), s(9, 50), s(7, 60)]],
+      ["pulldown", [s(null, 36, "27 drop"), s(null, 36, "27 drop")]],
+      ["facepull", [s(12, 36), s(12, 36)]],
+      ["incline curl", [s(9, 12.5), s(7, 12.5), s(5, 12.5)]],
+      ["hammer curl", [s(7, 12.5), s(6, 12.5)]],
+      ["abs machine", [s(15, 7), s(8, 11)]],
+      ["leg raise", [s()]]
+    ]),
+    mk("s3", "2026-09-08", "push A", [
+      ["smith incline press", [s(8, 50), s(7, 50), s(null, 50, "failed")]],
+      ["pec deck", []],
+      ["machine fly", [s(7, null, "failure"), s(6, null, "failure"), s(6, null, "failure")]],
+      ["dumbbell shoulder press", [s(8, 17.5), s(8, 17.5)]],
+      ["lateral raise", [s(12, 10)]]
+    ])
+  ];
+  return d;
+}
+
+var KEY = "tmn.v1";
+var db;
+try {
+  var raw = localStorage.getItem(KEY);
+  db = raw ? JSON.parse(raw) : fresh();
+} catch(e){ db = fresh(); }
+if(!db || !db.sessions) db = fresh();
+if(!db.lang) db.lang = "en";
+if(!db.units) db.units = "kg";
+if(!db.aliases) db.aliases = {};
+if(!db.rejects) db.rejects = {};
+
+var saveTimer = null;
+function save(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(function(){
+    try { localStorage.setItem(KEY, JSON.stringify(db)); } catch(e){}
+  }, 200);
+}
+
+/* =======================================================================
+   3. EXERCISE IDENTITY
+
+   Two layers, on purpose:
+
+   LAYER 1 — canonKey(): silent, lossless. Word order, plurals and common
+   misspellings carry no meaning in a gym, so "incline smith press" and
+   "smith incline press" collapse to the same key with no question asked.
+
+   LAYER 2 — similarTo(): asks once. "cable pushdown" and "triceps pushdown"
+   are PROBABLY the same movement, but "dumbbell lateral" and "cable lateral"
+   are NOT. No rule can tell those apart, so the app never guesses silently —
+   a wrong silent merge corrupts history, a wrong question costs one tap.
+   The answer is remembered in db.aliases / db.rejects and never asked again.
+   ======================================================================= */
+
+var WORDMAP = {
+  tricep: "triceps", triceps: "triceps",
+  bicep: "biceps", biceps: "biceps",
+  dumbell: "dumbbell", dumbells: "dumbbell", dumbbells: "dumbbell", db: "dumbbell",
+  barbel: "barbell", bb: "barbell", ez: "barbell",
+  curls: "curl", presses: "press", rows: "row", raises: "raise",
+  extensions: "extension", pulldowns: "pulldown", pushdowns: "pushdown",
+  flye: "fly", flyes: "fly", flies: "fly", flys: "fly",
+  facepulls: "facepull",
+  pullups: "pullup", pullup: "pullup", chinup: "chinup", chinups: "chinup",
+  dips: "dip", squats: "squat", deadlifts: "deadlift", lunges: "lunge",
+  lats: "lat", legs: "leg", shoulders: "shoulder", laterals: "lateral"
+};
+var FILLER = { machine: 1, the: 1, a: 1, and: 1, with: 1, on: 1, of: 1 };
+
+function tokens(name){
+  var raw = (name || "").toLowerCase().replace(/[^\wçğıöşü\s-]/g, " ").replace(/[-_]/g, " ").split(/\s+/);
+  var out = [];
+  for(var i = 0; i < raw.length; i++){
+    var w = raw[i];
+    if(!w) continue;
+    w = WORDMAP[w] || w;
+    if(FILLER[w]) continue;
+    if(out.indexOf(w) < 0) out.push(w);
+  }
+  return out.length ? out : [norm(name)];
+}
+function canonKey(name){ return tokens(name).slice().sort().join(" "); }
+
+/* Follow the alias chain so merged names all resolve to one identity. */
+function canon(name){
+  var k = canonKey(name), seen = {};
+  while(db.aliases[k] && !seen[k]){ seen[k] = 1; k = db.aliases[k]; }
+  return k;
+}
+function sameEx(a, b){ return canon(a) === canon(b); }
+function pairKey(a, b){ return a < b ? a + "|" + b : b + "|" + a; }
+
+/* The movement noun is the last token: "cable PUSHDOWN", "incline PRESS". */
+function headWord(toks){ return toks.length ? toks[toks.length - 1] : ""; }
+
+/* Closest already-known exercise worth asking about, or null. */
+function similarTo(name){
+  var mine = tokens(name), myKey = canon(name), h = headWord(mine);
+  if(!h) return null;
+  var ix = exIndex(), best = null, bestScore = 0;
+  ix.order.forEach(function(key){
+    if(key === myKey) return;
+    if(db.rejects[pairKey(myKey, key)]) return;
+    var other = tokens(ix.name[key]);
+    if(headWord(other) !== h) return;
+    var shared = 0;
+    mine.forEach(function(w){ if(other.indexOf(w) >= 0) shared++; });
+    var union = mine.length + other.length - shared;
+    var score = union ? shared / union : 0;
+    if(score > bestScore){ bestScore = score; best = ix.name[key]; }
+  });
+  return bestScore >= 0.28 ? best : null;
+}
+
+/* canon key -> most recently used spelling, in most-recent-first order. */
+function exIndex(){
+  var name = {}, order = [];
+  sorted().forEach(function(se){ se.blocks.forEach(function(b){
+    if(!b.name) return;
+    var c = canon(b.name);
+    if(!name[c]){ name[c] = b.name; order.push(c); }
+  }); });
+  return { name: name, order: order };
+}
+function spellings(key){
+  var seen = {}, out = [];
+  sorted().forEach(function(se){ se.blocks.forEach(function(b){
+    if(canon(b.name) !== key) return;
+    var n = norm(b.name);
+    if(!seen[n]){ seen[n] = 1; out.push(b.name); }
+  }); });
+  return out;
+}
+
+/* =======================================================================
+   4. PURE HELPERS
+   ======================================================================= */
+
+function uid(){ return "x" + Math.random().toString(36).slice(2, 9); }
+function norm(n){ return (n || "").toLowerCase().trim().replace(/\s+/g, " "); }
+function num(v){ return v == null ? "" : String(v); }
+function parseNum(txt){
+  txt = (txt || "").replace(",", ".").trim();
+  if(!txt) return null;
+  var f = parseFloat(txt);
+  return isNaN(f) ? null : f;
+}
+function sorted(){
+  return db.sessions.slice().sort(function(a, b){
+    return a.date < b.date ? 1 : a.date > b.date ? -1 : 0;
+  });
+}
+function getSession(id){
+  for(var i = 0; i < db.sessions.length; i++) if(db.sessions[i].id === id) return db.sessions[i];
+  return null;
+}
+function fmtDate(iso){
+  var p = iso.split("-"), d = new Date(+p[0], +p[1] - 1, +p[2]);
+  return d.getDate() + " " + t("mon")[d.getMonth()] + " " + d.getFullYear() + ", " + t("day")[d.getDay()];
+}
+function shortDate(iso){ var p = iso.split("-"); return p[2] + "." + p[1]; }
+function today(){
+  var d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function isBefore(a, b){
+  if(a.date !== b.date) return a.date < b.date;
+  return db.sessions.indexOf(a) < db.sessions.indexOf(b);
+}
+function isFilled(st){ return st.r != null || st.w != null || !!st.n; }
+
+/* ---- THE CORE LOOKUP: what did I do last time? ---- */
+function ghost(session, name, idx, field){
+  var list = sorted();
+  for(var i = 0; i < list.length; i++){
+    var se = list[i];
+    if(se.id === session.id || !isBefore(se, session)) continue;
+    for(var b = 0; b < se.blocks.length; b++){
+      if(!sameEx(se.blocks[b].name, name)) continue;
+      var st = se.blocks[b].sets[idx];
+      if(st && st[field] != null) return st[field];
+    }
+  }
+  return null;
+}
+function ghostCount(session, name){
+  var list = sorted();
+  for(var i = 0; i < list.length; i++){
+    var se = list[i];
+    if(se.id === session.id || !isBefore(se, session)) continue;
+    for(var b = 0; b < se.blocks.length; b++){
+      if(sameEx(se.blocks[b].name, name)) return se.blocks[b].sets.length;
+    }
+  }
+  return 0;
+}
+function allNames(){
+  var ix = exIndex();
+  return ix.order.map(function(k){ return ix.name[k]; });
+}
+function routineNames(){
+  var seen = {}, out = [];
+  sorted().forEach(function(se){
+    var k = norm(se.title);
+    if(k && !seen[k]){ seen[k] = 1; out.push(se.title); }
+  });
+  return out;
+}
+function titleTaken(session){
+  var k = norm(session.title);
+  if(!k) return false;
+  for(var i = 0; i < db.sessions.length; i++){
+    var x = db.sessions[i];
+    if(x.id !== session.id && norm(x.title) === k) return true;
+  }
+  return false;
+}
+function suggestTitle(base){
+  var stem = (base || "").replace(/\s+\d+$/, "").trim() || "workout";
+  var taken = {};
+  db.sessions.forEach(function(x){ taken[norm(x.title)] = 1; });
+  var n = 2;
+  while(taken[norm(stem + " " + n)]) n++;
+  return stem + " " + n;
+}
+function setLine(st){
+  var r = st.r == null ? "–" : st.r;
+  var w = st.w == null ? "" : " @" + st.w;
+  return "×" + r + w + (st.n ? "  " + st.n : "");
+}
+function preview(se){
+  var parts = [];
+  for(var i = 0; i < se.blocks.length && parts.length < 4; i++) parts.push(se.blocks[i].name);
+  return parts.join(" · ") || t("noEx");
+}
+
+/* =======================================================================
+   5. DOM PLUMBING
+   ======================================================================= */
+
+function el(tag, cls){
+  var e = document.createElement(tag);
+  if(tag === "button") e.type = "button";
+  if(cls) e.className = cls;
+  return e;
+}
+
+/* Drag right-to-left to delete. One gesture, used by both set rows and
+   notebook rows. Vertical movement always wins so the page still scrolls,
+   and a swipe swallows the click that would otherwise follow it. */
+function swipeable(face, opts){
+  var host = el("div", "swipe");
+  var del = el("div", "swipe-del");
+  del.textContent = t("swipeDel");
+  host.appendChild(del);
+  face.classList.add("swipe-face");
+  host.appendChild(face);
+
+  var startX = 0, startY = 0, dx = 0, tracking = false, horiz = false, swiped = false, pid = null;
+  var MAX = 112, TRIP = 60;
+
+  function reset(animate){
+    face.style.transition = animate ? "transform .18s ease" : "none";
+    face.style.transform = "translateX(0)";
+    host.classList.remove("pulling", "armed");
+  }
+  function down(e){
+    if(e.pointerType === "mouse" && e.button !== 0) return;
+    if(!opts.can()) return;
+    startX = e.clientX; startY = e.clientY;
+    dx = 0; tracking = true; horiz = false; pid = e.pointerId;
+    face.style.transition = "none";
+  }
+  function move(e){
+    if(!tracking || e.pointerId !== pid) return;
+    var mx = e.clientX - startX, my = e.clientY - startY;
+    if(!horiz){
+      if(Math.abs(mx) < 9 && Math.abs(my) < 9) return;
+      if(Math.abs(mx) <= Math.abs(my)){ tracking = false; return; }
+      horiz = true;
+      host.classList.add("pulling");
+      if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
+      try { face.setPointerCapture(pid); } catch(err){}
+    }
+    e.preventDefault();
+    dx = Math.max(-MAX, Math.min(0, mx));
+    face.style.transform = "translateX(" + dx + "px)";
+    host.classList.toggle("armed", dx < -TRIP);
+  }
+  function up(e){
+    if(!tracking || e.pointerId !== pid) return;
+    tracking = false;
+    if(!horiz){ reset(false); return; }
+    swiped = true;
+    setTimeout(function(){ swiped = false; }, 320);
+    if(dx < -TRIP){
+      face.style.transition = "transform .16s ease";
+      face.style.transform = "translateX(-100%)";
+      setTimeout(opts.onDelete, 150);
+    } else reset(true);
+  }
+
+  face.addEventListener("pointerdown", down);
+  face.addEventListener("pointermove", move, { passive: false });
+  face.addEventListener("pointerup", up);
+  face.addEventListener("pointercancel", up);
+  face.addEventListener("click", function(e){
+    if(swiped || horiz){ e.preventDefault(); e.stopPropagation(); }
+  }, true);
+
+  return host;
+}
+
+/* Enter and arrows walk through every number/note field on screen.
+   Each row has exactly three inputs, so ±3 is "same column, next row". */
+function stepField(from, delta){
+  var all = Array.prototype.slice.call(wrap.querySelectorAll(".set input"));
+  var i = all.indexOf(from);
+  var next = all[i + delta];
+  if(next){ next.focus(); }
+}
+function fieldNav(e){
+  var f = e.target, at = null;
+  try { at = f.selectionStart; } catch(err){}
+  if(e.key === "Enter"){ e.preventDefault(); stepField(f, e.shiftKey ? -1 : 1); return; }
+  if(e.key === "ArrowDown"){ e.preventDefault(); stepField(f, 3); return; }
+  if(e.key === "ArrowUp"){ e.preventDefault(); stepField(f, -3); return; }
+  if(e.key === "ArrowRight" && at === f.value.length){ e.preventDefault(); stepField(f, 1); return; }
+  if(e.key === "ArrowLeft" && at === 0){ e.preventDefault(); stepField(f, -1); }
+}
+
+/* Tap a number that already has a value and you overwrite it, the way a
+   spreadsheet cell behaves. Focus selects everything; the pointerup that
+   follows is swallowed so it cannot collapse the selection to a caret. */
+function autoSelect(inp){
+  var armed = false;
+  inp.addEventListener("focus", function(){
+    armed = true;
+    setTimeout(function(){
+      if(document.activeElement === inp){ try { inp.select(); } catch(e){} }
+    }, 0);
+  });
+  inp.addEventListener("pointerup", function(ev){
+    if(armed){ ev.preventDefault(); armed = false; }
+  });
+  inp.addEventListener("blur", function(){ armed = false; });
+}
+
+var wrap = document.getElementById("wrap");
+var sheetHost = document.getElementById("sheetHost");
+var newest = sorted()[0];
+var view = newest ? { screen: "session", id: newest.id } : { screen: "list", id: null };
+
+function go(screen, id){
+  var cur = getSession(view.id);
+  if(cur){
+    delete cur.fresh;                                    /* hints do not follow you around */
+    cur.blocks.forEach(function(b){ delete b.ask; });
+  }
+  view = { screen: screen, id: id === undefined ? view.id : id };
+  render();
+  window.scrollTo(0, 0);
+}
+function render(){
+  wrap.innerHTML = "";
+  var dl = document.getElementById("exnames");
+  dl.innerHTML = "";
+  allNames().forEach(function(n){ var o = el("option"); o.value = n; dl.appendChild(o); });
+  if(view.screen === "list") renderList(); else renderSession();
+}
+
+/* =======================================================================
+   6. SCREEN: notebook list
+   ======================================================================= */
+
+function renderList(){
+  var bar = el("div", "bar");
+  bar.appendChild(el("div", "grow"));
+  var st = el("button");
+  st.innerHTML = '<span class="dots">•••</span>';
+  st.setAttribute("aria-label", t("aSettings"));
+  st.onclick = settingsSheet;
+  bar.appendChild(st);
+  wrap.appendChild(bar);
+
+  var head = el("div", "listhead");
+  var h = el("h1"); h.textContent = t("appName"); head.appendChild(h);
+  var p = el("p"); p.textContent = t("tagline"); head.appendChild(p);
+  wrap.appendChild(head);
+
+  var list = sorted();
+  if(!list.length){
+    var bs = el("div", "blank-state");
+    var bh = el("h2"); bh.textContent = t("blankTitle"); bs.appendChild(bh);
+    var bp = el("p"); bp.textContent = t("blankBody"); bs.appendChild(bp);
+    wrap.appendChild(bs);
+  } else {
+    var rows = el("div", "rows");
+    list.forEach(function(se){
+      var r = el("button", "row");
+      var ti = el("div", "t"); ti.textContent = se.title || t("untitled"); r.appendChild(ti);
+      var m = el("div", "m");
+      var d = el("span", "d"); d.textContent = shortDate(se.date); m.appendChild(d);
+      var pv = el("span", "p"); pv.textContent = preview(se); m.appendChild(pv);
+      r.appendChild(m);
+      r.onclick = function(){ go("session", se.id); };
+      rows.appendChild(swipeable(r, {
+        can: function(){ return true; },
+        onDelete: function(){
+          var i = db.sessions.indexOf(se);
+          if(i >= 0) db.sessions.splice(i, 1);
+          save(); render();
+        }
+      }));
+    });
+    wrap.appendChild(rows);
+  }
+
+  var fab = el("button", "fab");
+  fab.textContent = t("newWorkout");
+  fab.onclick = newSheet;
+  wrap.appendChild(fab);
+}
+
+/* =======================================================================
+   7. SCREEN: one workout note
+   ======================================================================= */
+
+function renderSession(){
+  var se = getSession(view.id);
+  if(!se){ view.screen = "list"; return render(); }
+
+  var bar = el("div", "bar");
+  var back = el("button");
+  back.innerHTML = '<span class="chev">‹</span><span></span>';
+  back.lastChild.textContent = t("notes");
+  back.onclick = function(){ go("list"); };
+  bar.appendChild(back);
+  bar.appendChild(el("div", "grow"));
+  var more = el("button");
+  more.innerHTML = '<span class="dots">•••</span>';
+  more.setAttribute("aria-label", t("aNoteOpts"));
+  more.onclick = function(){ sessionSheet(se); };
+  bar.appendChild(more);
+  wrap.appendChild(bar);
+
+  var stamp = el("div", "stamp");
+  stamp.textContent = fmtDate(se.date) + "  ";
+  var u = el("span", "u"); u.textContent = db.units; stamp.appendChild(u);
+  wrap.appendChild(stamp);
+
+  var title = el("input", "title");
+  title.value = se.title || ""; title.placeholder = t("titlePh");
+  title.setAttribute("aria-label", t("aTitle"));
+  title.oninput = function(){ se.title = title.value; save(); syncHint(); };
+  title.onkeydown = function(e){
+    if(e.key === "Enter"){ e.preventDefault(); var f = wrap.querySelector(".set input"); if(f) f.focus(); }
+  };
+  wrap.appendChild(title);
+
+  /* Naming hint — only while a brand-new blank note is being named, so a
+     routine you repeat every week never nags you. */
+  var hintHost = el("div");
+  wrap.appendChild(hintHost);
+  function syncHint(){
+    hintHost.innerHTML = "";
+    if(!se.fresh || !titleTaken(se)) return;
+    var box = el("div", "hint top");
+    var msg = el("div", "msg");
+    var b = el("b"); b.textContent = "“" + se.title + "”";
+    msg.appendChild(b);
+    msg.appendChild(document.createTextNode(" " + t("taken")));
+    box.appendChild(msg);
+    var sug = suggestTitle(se.title);
+    var ren = el("button");
+    ren.textContent = t("renameTo") + " " + sug;
+    ren.onclick = function(){ se.title = sug; delete se.fresh; save(); render(); };
+    box.appendChild(ren);
+    var keep = el("button", "plain");
+    keep.textContent = t("keepIt");
+    keep.onclick = function(){ delete se.fresh; save(); render(); };
+    box.appendChild(keep);
+    hintHost.appendChild(box);
+  }
+  syncHint();
+
+  var blocks = el("div", "blocks");
+  se.blocks.forEach(function(b, bi){ blocks.appendChild(blockEl(se, b, bi)); });
+  blocks.appendChild(addExerciseEl(se));
+  wrap.appendChild(blocks);
+}
+
+function blockEl(se, b, bi){
+  var box = el("div", "ex");
+
+  var name = el("button", "exname");
+  var dash = el("span", "dash"); dash.textContent = "–"; name.appendChild(dash);
+  var txt = el("span"); txt.textContent = b.name; name.appendChild(txt);
+  name.onclick = function(){ exerciseSheet(se, b, bi); };
+  box.appendChild(name);
+
+  /* "Same exercise as ...?" — asked once, on the spot, never guessed. */
+  if(b.ask){
+    var box2 = el("div", "hint inline");
+    var msg = el("div", "msg");
+    msg.appendChild(document.createTextNode(t("sameAs") + " "));
+    var strong = el("b"); strong.textContent = "“" + b.ask + "”"; msg.appendChild(strong);
+    msg.appendChild(document.createTextNode(t("sameQ")));
+    box2.appendChild(msg);
+    var yes = el("button");
+    yes.textContent = t("merge");
+    yes.onclick = function(){
+      db.aliases[canonKey(b.name)] = canon(b.ask);
+      delete b.ask; save(); render();
+    };
+    box2.appendChild(yes);
+    var no = el("button", "plain");
+    no.textContent = t("keepApart");
+    no.onclick = function(){
+      db.rejects[pairKey(canon(b.name), canon(b.ask))] = 1;
+      delete b.ask; save(); render();
+    };
+    box2.appendChild(no);
+    box.appendChild(box2);
+  }
+
+  var rows = Math.max(b.sets.length, ghostCount(se, b.name)) + 1;
+  for(var i = 0; i < rows; i++) box.appendChild(rowEl(se, b, i));
+  return box;
+}
+
+/* One set row. Built from three places at once:
+   - b.sets[i]   what you recorded      -> value
+   - ghost(...)  what you did last time -> placeholder
+   - nothing     a blank row waiting at the end of every exercise         */
+function rowEl(se, b, i){
+  var st = b.sets[i] || null;
+  var gr = ghost(se, b.name, i, "r");
+  var gw = ghost(se, b.name, i, "w");
+  var row = el("div", "set");
+
+  var idx = el("span", "idx"); idx.textContent = (i + 1) + "."; row.appendChild(idx);
+  var t1 = el("span", "tok"); t1.textContent = "×"; row.appendChild(t1);
+
+  var r = el("input", "r");
+  r.inputMode = "numeric"; r.enterKeyHint = "next";
+  r.value = st && st.r != null ? num(st.r) : "";
+  r.placeholder = gr != null ? num(gr) : "";
+  r.setAttribute("aria-label", b.name + " " + t("aSet") + " " + (i + 1) + " " + t("aReps"));
+  row.appendChild(r);
+
+  var t2 = el("span", "tok at"); t2.textContent = "@"; row.appendChild(t2);
+
+  var w = el("input", "w");
+  w.inputMode = "decimal"; w.enterKeyHint = "next";
+  w.value = st && st.w != null ? num(st.w) : "";
+  w.placeholder = gw != null ? num(gw) : "";
+  w.setAttribute("aria-label", b.name + " " + t("aSet") + " " + (i + 1) + " " + t("aWeight"));
+  row.appendChild(w);
+
+  var n = el("input", "n");
+  n.enterKeyHint = "next";
+  n.value = st ? (st.n || "") : "";
+  n.setAttribute("aria-label", b.name + " " + t("aSet") + " " + (i + 1) + " " + t("aNote"));
+  row.appendChild(n);
+
+  autoSelect(r);
+  autoSelect(w);
+  r.onkeydown = w.onkeydown = n.onkeydown = fieldNav;
+
+  function tone(){
+    var noW = !w.value && !w.placeholder;
+    row.classList.toggle("dim", noW);
+    row.classList.toggle("blank", noW && !r.value && !r.placeholder && !n.value);
+  }
+  tone();
+
+  /* A row only becomes real in the data once you type into it. Trailing
+     ghost rows cost nothing and are never written. */
+  function ensure(){
+    while(b.sets.length <= i) b.sets.push(s());
+    delete se.fresh;
+    return b.sets[i];
+  }
+  function grow(){
+    var parent = host.parentNode;
+    if(!parent) return;
+    var all = parent.querySelectorAll(".swipe");
+    if(all[all.length - 1] === host) parent.appendChild(rowEl(se, b, i + 1));
+  }
+  r.oninput = function(){ ensure().r = parseNum(r.value); save(); grow(); tone(); };
+  w.oninput = function(){ ensure().w = parseNum(w.value); save(); grow(); tone(); };
+  n.oninput = function(){ ensure().n = n.value; save(); grow(); tone(); };
+
+  var host = swipeable(row, {
+    can: function(){ return i < b.sets.length; },
+    onDelete: function(){ b.sets.splice(i, 1); save(); render(); }
+  });
+  return host;
+}
+
+function addExerciseEl(se){
+  var host = el("div", "addwrap");
+  var btn = el("button", "addex");
+  var dash = el("span", "dash"); dash.textContent = "–"; btn.appendChild(dash);
+  var lbl = el("span"); lbl.textContent = t("addEx"); btn.appendChild(lbl);
+  host.appendChild(btn);
+
+  btn.onclick = function(){
+    var holder = el("div", "addex");
+    var d2 = el("span", "dash"); d2.textContent = "–"; holder.appendChild(d2);
+    var inp = el("input");
+    inp.placeholder = t("exNamePh");
+    inp.setAttribute("list", "exnames");
+    inp.setAttribute("aria-label", t("exNamePh"));
+    holder.appendChild(inp);
+    host.replaceChild(holder, btn);
+    inp.focus();
+    var done = false;
+    function commit(){
+      if(done) return;
+      done = true;
+      var v = inp.value.trim();
+      if(v){
+        var block = { id: uid(), name: v, sets: [] };
+        var near = similarTo(v);
+        if(near) block.ask = near;
+        se.blocks.push(block);
+      }
+      save(); render();
+    }
+    inp.onkeydown = function(e){
+      if(e.key === "Enter"){ e.preventDefault(); commit(); }
+      if(e.key === "Escape"){ done = true; render(); }
+    };
+    inp.onblur = commit;
+  };
+  return host;
+}
+
+/* =======================================================================
+   8. SHEETS
+   ======================================================================= */
+
+function openSheet(build){
+  var scrim = el("div", "scrim");
+  var sh = el("div", "sheet");
+  scrim.appendChild(sh);
+  function close(){ sheetHost.innerHTML = ""; document.removeEventListener("keydown", esc); }
+  function esc(e){ if(e.key === "Escape") close(); }
+  scrim.onclick = function(e){ if(e.target === scrim) close(); };
+  document.addEventListener("keydown", esc);
+  build(sh, close);
+  sheetHost.innerHTML = "";
+  sheetHost.appendChild(scrim);
+}
+function head2(sh, title, sub){
+  var a = el("h2"); a.textContent = title; sh.appendChild(a);
+  if(sub){ var b = el("p", "sub"); b.textContent = sub; sh.appendChild(b); }
+}
+function option(sh, label, key, fn, cls){
+  var o = el("button", "opt" + (cls ? " " + cls : ""));
+  var l = el("span"); l.textContent = label; o.appendChild(l);
+  if(key){ var k = el("span", "k"); k.textContent = key; o.appendChild(k); }
+  o.onclick = fn;
+  sh.appendChild(o);
+}
+
+function newSheet(){
+  openSheet(function(sh, close){
+    head2(sh, t("newWorkout"), t("newSub"));
+    routineNames().forEach(function(name){
+      option(sh, name, null, function(){
+        var list = sorted(), src = null;
+        for(var i = 0; i < list.length; i++) if(norm(list[i].title) === norm(name)){ src = list[i]; break; }
+        var ns = { id: uid(), date: today(), title: name, blocks: (src ? src.blocks : []).map(function(b){
+          return { id: uid(), name: b.name, sets: [] };
+        }) };
+        db.sessions.push(ns); save(); close(); go("session", ns.id);
+      });
+    });
+    option(sh, t("blankNote"), null, function(){
+      var ns = { id: uid(), date: today(), title: "", blocks: [], fresh: true };
+      db.sessions.push(ns); save(); close(); go("session", ns.id);
+    });
+  });
+}
+
+function sessionSheet(se){
+  openSheet(function(sh, close){
+    head2(sh, se.title || t("untitled"), fmtDate(se.date));
+    option(sh, t("exportMd"), null, function(){ close(); exportSheet(); });
+    option(sh, t("units"), db.units, function(){
+      db.units = db.units === "kg" ? "lb" : "kg"; save(); close(); render();
+    });
+    option(sh, t("deleteNote"), null, function(){
+      var i = db.sessions.indexOf(se);
+      if(i >= 0) db.sessions.splice(i, 1);
+      save(); close(); go("list", null);
+    }, "danger");
+  });
+}
+
+function exerciseSheet(se, b, bi){
+  openSheet(function(sh, close){
+    var key = canon(b.name);
+    var names = spellings(key);
+    var sub = t("history");
+    if(names.length > 1){
+      sub += "  ·  " + t("alsoKnown") + ": " + names.filter(function(n){
+        return norm(n) !== norm(b.name);
+      }).join(", ");
+    }
+    head2(sh, b.name, sub);
+
+    var any = false;
+    var box = el("div", "hist");
+    sorted().forEach(function(x){
+      x.blocks.forEach(function(bb){
+        if(canon(bb.name) !== key) return;
+        var filled = bb.sets.filter(isFilled);
+        if(!filled.length && x.id !== se.id) return;
+        any = true;
+        var e = el("div", "hentry");
+        var d = el("div", "hd");
+        d.textContent = shortDate(x.date) + (x.id === se.id ? "  ·  " + t("thisNote") : "");
+        if(norm(bb.name) !== norm(b.name)){
+          var al = el("span", "alias"); al.textContent = "  ·  " + bb.name; d.appendChild(al);
+        }
+        e.appendChild(d);
+        if(!filled.length){
+          var em = el("div", "empty"); em.textContent = t("emptySoFar"); e.appendChild(em);
+        } else {
+          filled.forEach(function(st, i){
+            var l = el("div", "hl");
+            var mm = el("span", "muted"); mm.textContent = (i + 1) + ". ";
+            l.appendChild(mm);
+            l.appendChild(document.createTextNode(setLine(st)));
+            e.appendChild(l);
+          });
+        }
+        box.appendChild(e);
+      });
+    });
+    if(!any){
+      var em2 = el("div", "empty");
+      em2.textContent = t("firstTime");
+      box.appendChild(em2);
+    }
+    sh.appendChild(box);
+    var sep = el("div"); sep.style.height = "18px"; sh.appendChild(sep);
+    option(sh, t("removeEx"), null, function(){
+      se.blocks.splice(bi, 1); save(); close(); render();
+    }, "danger");
+  });
+}
+
+function toMarkdown(){
+  var out = ["# " + t("appName"), ""];
+  sorted().forEach(function(se){
+    out.push("## " + fmtDate(se.date) + " — " + (se.title || t("untitled")));
+    out.push("");
+    se.blocks.forEach(function(b){
+      out.push("**" + b.name + "**");
+      var filled = b.sets.filter(isFilled);
+      if(!filled.length) out.push("_" + t("mdEmpty") + "_");
+      filled.forEach(function(st, i){
+        out.push((i + 1) + ". ×" + (st.r == null ? "–" : st.r) +
+          (st.w == null ? "" : " @" + st.w + " " + db.units) + (st.n ? "  " + st.n : ""));
+      });
+      out.push("");
+    });
+  });
+  return out.join("\n");
+}
+
+function exportSheet(){
+  openSheet(function(sh, close){
+    head2(sh, t("exportTitle"), t("exportSub"));
+    var md = toMarkdown();
+    var pre = el("pre", "md"); pre.textContent = md;
+    sh.appendChild(pre);
+    var rowb = el("div", "btnrow");
+    var copy = el("button", "btn primary"); copy.textContent = t("copy");
+    copy.onclick = function(){
+      function ok(){ copy.textContent = t("copied"); setTimeout(function(){ copy.textContent = t("copy"); }, 1400); }
+      function fallback(){
+        var r = document.createRange(); r.selectNodeContents(pre);
+        var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+        copy.textContent = t("selected");
+      }
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(md).then(ok, fallback);
+      } else fallback();
+    };
+    var cl = el("button", "btn"); cl.textContent = t("close"); cl.onclick = close;
+    rowb.appendChild(copy); rowb.appendChild(cl);
+    sh.appendChild(rowb);
+  });
+}
+
+function settingsSheet(){
+  openSheet(function(sh, close){
+    head2(sh, t("notebook"), db.sessions.length + " " + t("nNotes") + " · " + allNames().length + " " + t("nEx"));
+    option(sh, t("language"), STR[db.lang].langName, function(){
+      db.lang = LANGS[(LANGS.indexOf(db.lang) + 1) % LANGS.length];
+      save(); close(); render();
+    });
+    option(sh, t("units"), db.units, function(){
+      db.units = db.units === "kg" ? "lb" : "kg"; save(); close(); render();
+    });
+    option(sh, t("exportMd"), null, function(){ close(); exportSheet(); });
+    option(sh, t("loadSample"), null, function(){
+      var lang = db.lang, units = db.units;
+      db = sample(); db.lang = lang; db.units = units;
+      save(); close(); go("session", sorted()[0].id);
+    });
+    option(sh, t("eraseAll"), null, function(){
+      var lang = db.lang, units = db.units;
+      db = fresh(); db.lang = lang; db.units = units;
+      save(); close(); go("list", null);
+    }, "danger");
+  });
+}
+
+render();
+})();
+</script>
