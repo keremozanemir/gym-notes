@@ -1,4 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>gym notes</title>
+<meta name="description" content="A workout log that feels like a plain notes app.">
+<meta name="theme-color" content="#FBF9F4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B0A09" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="gym notes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
@@ -42,9 +57,13 @@
 }
 
 *{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{
+  margin:0;
   background:var(--ground);
   color:var(--hi);
+  overscroll-behavior-y:none;
+  -webkit-tap-highlight-color:transparent;
   font-family:var(--sans);
   -webkit-font-smoothing:antialiased;
   font-size:16px;
@@ -59,7 +78,7 @@ input{font:inherit;color:inherit;background:none;border:0;padding:0;outline:none
   min-height:100vh;
   background:var(--ground);
   position:relative;
-  padding-bottom:110px;
+  padding-bottom:calc(110px + env(safe-area-inset-bottom));
 }
 @media (min-width:520px){
   .wrap{border-left:1px solid var(--line);border-right:1px solid var(--line)}
@@ -83,7 +102,8 @@ input{font:inherit;color:inherit;background:none;border:0;padding:0;outline:none
 .bar{
   position:sticky;top:0;z-index:20;
   display:flex;align-items:center;gap:12px;
-  height:50px;padding:0 16px;
+  height:calc(50px + env(safe-area-inset-top));
+  padding:env(safe-area-inset-top) 16px 0;
   background:var(--ground);
 }
 .bar .grow{flex:1}
@@ -152,21 +172,22 @@ input{font:inherit;color:inherit;background:none;border:0;padding:0;outline:none
   display:grid;
   grid-template-columns:2.8ch 1.4ch 3ch 2.1ch 5ch 1fr;
   align-items:baseline;
-  font-family:var(--mono);font-size:15.5px;
+  font-family:var(--mono);font-size:16px;
   padding:2px 0;
   font-variant-numeric:tabular-nums;
   touch-action:pan-y;
 }
-.set .idx{color:var(--ghost);font-size:13.5px}
+/* every input stays at 16px or larger: below that, iOS Safari zooms the page on focus */
+.set .idx{color:var(--ghost);font-size:14px}
 .set .tok{color:var(--mid)}
 .set .tok.at{text-align:right}
 .set.dim .tok.at{color:var(--ghost);opacity:.45}
 .set.blank .tok{opacity:.2}
-.set input{width:100%;font-family:var(--mono);font-size:15.5px;border-radius:3px}
+.set input{width:100%;font-family:var(--mono);font-size:16px;border-radius:3px}
 .set input::placeholder{color:var(--ghost);opacity:1}
 .set .r{text-align:right}
 .set .w{text-align:left}
-.set .n{font-size:14px;color:var(--mid);padding-left:1.4ch}
+.set .n{color:var(--mid);padding-left:1.4ch}
 .set input:focus{background:var(--sel)}
 
 .addwrap{padding-top:2px}
@@ -182,7 +203,7 @@ input{font:inherit;color:inherit;background:none;border:0;padding:0;outline:none
 /* floating action */
 .fab{
   position:fixed;left:50%;transform:translateX(-50%);
-  bottom:24px;z-index:30;
+  bottom:calc(24px + env(safe-area-inset-bottom));z-index:30;
   padding:11px 19px;border-radius:999px;
   background:var(--hi);color:var(--ground);
   font-size:14px;font-weight:600;letter-spacing:-.01em;
@@ -196,7 +217,7 @@ input{font:inherit;color:inherit;background:none;border:0;padding:0;outline:none
   background:var(--surface);
   border-top:1px solid var(--line);
   border-radius:16px 16px 0 0;
-  padding:22px 20px 30px;
+  padding:22px 20px calc(30px + env(safe-area-inset-bottom));
   animation:up .22s cubic-bezier(.2,.8,.3,1);
 }
 @keyframes up{from{transform:translateY(16px);opacity:.3}to{transform:none;opacity:1}}
@@ -231,6 +252,8 @@ pre.md{
 }
 .btn.primary{background:var(--accent);color:#100E0B}
 </style>
+</head>
+<body>
 
 <div class="wrap" id="wrap"></div>
 <div id="sheetHost"></div>
@@ -1182,5 +1205,12 @@ function settingsSheet(){
 }
 
 render();
+
+/* Offline support: once opened, the app keeps working in a gym with no signal. */
+if("serviceWorker" in navigator && location.protocol === "https:"){
+  navigator.serviceWorker.register("sw.js").catch(function(){});
+}
 })();
 </script>
+</body>
+</html>
