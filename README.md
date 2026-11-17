@@ -3,7 +3,7 @@
 A workout log that feels like a plain notes app. Last session's numbers sit faded under every set, so you type over them.
 
 - **App:** `index.html`, a single file with no build step. Double-click it to open it in a browser.
-- **Live link:** GitHub Pages address, added after the first deploy.
+- **Live link:** https://keremozanemir.github.io/gym-notes/
 
 ## Files
 
